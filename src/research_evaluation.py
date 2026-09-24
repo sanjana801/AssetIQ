@@ -4,6 +4,10 @@ from features import create_features
 from anomaly import train_anomaly_model, predict_anomalies
 from sklearn.model_selection import GroupShuffleSplit
 from sklearn.ensemble import IsolationForest
+from models.uncertainty import (
+    train_quantile_models,
+    calibrate_prediction_interval
+)
 
 
 df = load_cmapss_fd001()
@@ -258,13 +262,86 @@ train_df["uncertainty_width"] = (
     train_rul_upper - train_rul_lower
 )
 
-test_coverage = (
+# ------------------------------------------------------------
+# Calibrate uncertainty interval using validation data
+# ------------------------------------------------------------
+
+rul_lower = np.minimum(rul_lower, rul_point)
+rul_upper = np.maximum(rul_upper, rul_point)
+
+calibration_factor = calibrate_prediction_interval(
+    y_true=y_val,
+    lower_prediction=rul_lower,
+    upper_prediction=rul_upper,
+    target_coverage=0.80
+)
+
+print("\nUncertainty Calibration")
+print(
+    f"Calibration factor: "
+    f"{calibration_factor:.3f}"
+)
+
+# Apply the validation-derived calibration to validation data
+calibrated_val_lower = np.maximum(
+    rul_lower - calibration_factor,
+    0
+)
+
+calibrated_val_upper = (
+    rul_upper + calibration_factor
+)
+
+val_coverage = np.mean(
+    (y_val >= calibrated_val_lower) &
+    (y_val <= calibrated_val_upper)
+)
+
+val_width = np.mean(
+    calibrated_val_upper - calibrated_val_lower
+)
+
+print(f"Calibrated validation coverage: {val_coverage:.3f}")
+print(f"Calibrated validation width: {val_width:.3f}")
+
+# ------------------------------------------------------------
+# Apply calibration to untouched test data
+# ------------------------------------------------------------
+
+test_rul_lower = np.minimum(
+    test_rul_lower,
+    test_df["predicted_RUL"]
+)
+
+test_rul_upper = np.maximum(
+    test_rul_upper,
+    test_df["predicted_RUL"]
+)
+
+test_calibrated_lower = np.maximum(
+    test_rul_lower - calibration_factor,
+    0
+)
+
+test_calibrated_upper = (
+    test_rul_upper + calibration_factor
+)
+
+test_df["RUL_lower"] = test_calibrated_lower
+test_df["RUL_upper"] = test_calibrated_upper
+
+test_df["uncertainty_width"] = (
+    test_df["RUL_upper"] -
+    test_df["RUL_lower"]
+)
+
+test_coverage = np.mean(
     (test_df["RUL"] >= test_df["RUL_lower"]) &
     (test_df["RUL"] <= test_df["RUL_upper"])
-).mean()
+)
 
-print("\nTest Uncertainty Evaluation")
-print(f"Nominal coverage: 0.800")
+print("\nCalibrated Test Uncertainty Evaluation")
+print("Nominal coverage: 0.800")
 print(f"Observed coverage: {test_coverage:.3f}")
 print(
     f"Coverage gap: "
@@ -275,31 +352,17 @@ print(
     f"{test_df['uncertainty_width'].mean():.3f}"
 )
 
-# Ensure the interval contains the point prediction
-rul_lower = np.minimum(rul_lower, rul_point)
-rul_upper = np.maximum(rul_upper, rul_point)
-
-coverage = np.mean(
-    (y_val >= rul_lower) &
-    (y_val <= rul_upper)
-)
-
-mean_width = np.mean(
-    rul_upper - rul_lower
-)
-
-coverage_gap = coverage - 0.80
-
-print("\nUncertainty Evaluation")
-print(f"Nominal coverage: 0.800")
-print(f"Observed coverage: {coverage:.3f}")
-print(f"Coverage gap: {coverage_gap:.3f}")
-print(f"Mean interval width: {mean_width:.3f}")
+# ------------------------------------------------------------
+# Validation dataframe for downstream analysis
+# ------------------------------------------------------------
 
 val_df["predicted_RUL"] = rul_point
-val_df["RUL_lower"] = rul_lower
-val_df["RUL_upper"] = rul_upper
-val_df["uncertainty_width"] = rul_upper - rul_lower
+val_df["RUL_lower"] = calibrated_val_lower
+val_df["RUL_upper"] = calibrated_val_upper
+val_df["uncertainty_width"] = (
+    calibrated_val_upper -
+    calibrated_val_lower
+)
 
 val_df["life_stage"] = pd.qcut(
     val_df["RUL"],
@@ -317,7 +380,7 @@ stage_coverage = (
     )
 )
 
-print("\nUncertainty Coverage by Life Stage")
+print("\nCalibrated Uncertainty Coverage by Life Stage")
 print(stage_coverage)
 
 print("\nSample validation predictions:")
