@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.vscode/
+.streamlit/
+*.log
+
+models/
+*.pkl
+*.joblib
+
+data/processed/
+data/raw/
+
+.DS_Store
+Thumbs.db
