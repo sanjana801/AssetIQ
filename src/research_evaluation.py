@@ -768,6 +768,9 @@ for threshold in [0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70]:
     )
 
     if threshold == 0.65:
+        selected_assetiq_result = result.copy()
+
+    if threshold == 0.65:
         print("\nAssetIQ Asset-Level Decisions")
         print(
             result.sort_values("unit").to_string(index=False)
@@ -996,6 +999,8 @@ for name, score in test_ablation_policies.items():
         threshold=selected_assetiq_threshold
     )
 
+    
+
     cost = calculate_policy_cost(result)
 
     ablation_test_results[name] = {
@@ -1081,7 +1086,7 @@ research_results = {
 
 
 "assetiq_asset_decisions": (
-    result[result["unit"].isin(val_df["unit"])]
+    selected_assetiq_result
     .sort_values("unit")
     .to_dict(orient="records")
 ),

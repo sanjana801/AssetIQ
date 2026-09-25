@@ -177,25 +177,50 @@ st.header("Ablation Study")
 
 ablation = results["ablation"]
 
+st.subheader("Validation")
+
+validation_ablation = ablation["validation"]
+
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    st.metric("RUL Only", f"₹{ablation['RUL Only']:,.0f}")
+    st.metric("RUL Only", f"₹{validation_ablation['RUL Only']:,.0f}")
 
 with col2:
-    st.metric("RUL + Anomaly", f"₹{ablation['RUL + Anomaly']:,.0f}")
+    st.metric("RUL + Anomaly", f"₹{validation_ablation['RUL + Anomaly']:,.0f}")
 
 with col3:
-    st.metric("RUL + Uncertainty", f"₹{ablation['RUL + Uncertainty']:,.0f}")
+    st.metric(
+        "RUL + Uncertainty",
+        f"₹{validation_ablation['RUL + Uncertainty']:,.0f}"
+    )
 
 with col4:
-    st.metric("AssetIQ", f"₹{ablation['AssetIQ']:,.0f}")
+    st.metric("AssetIQ", f"₹{validation_ablation['AssetIQ']:,.0f}")
+
+
+st.subheader("Test")
+
+test_ablation = ablation["test"]
+
+ablation_table = pd.DataFrame(test_ablation).T.reset_index()
+ablation_table.columns = [
+    "Policy",
+    "Cost",
+    "Failures",
+    "Mean Lead Time"
+]
+
+st.dataframe(
+    ablation_table,
+    use_container_width=True,
+    hide_index=True
+)
 
 st.caption(
-    "Note: Maintenance costs are simulated using illustrative preventive, "
-    "failure, and early-maintenance penalty assumptions. Results are evaluated "
-    "on the validation assets and should not be interpreted as measured "
-    "industrial cost savings."
+    "Maintenance costs are simulated using illustrative preventive, failure, "
+    "and early-maintenance penalty assumptions. The selected AssetIQ threshold "
+    "is determined using validation data; test results are reported separately."
 )
 
 st.header("Fleet Overview")
@@ -454,24 +479,30 @@ asset_decisions = pd.DataFrame(
     results["assetiq_asset_decisions"]
 )
 
-asset_decisions.columns = [
-    "Asset",
-    "Maintenance Cycle",
-    "Lead Time",
-    "Failure"
-]
+if not asset_decisions.empty:
+    asset_decisions.columns = [
+        "Asset",
+        "Maintenance Cycle",
+        "Lead Time",
+        "Failure"
+    ]
 
-st.dataframe(
-    asset_decisions,
-    use_container_width=True,
-    hide_index=True
-)
+    st.dataframe(
+        asset_decisions,
+        use_container_width=True,
+        hide_index=True
+    )
+else:
+    st.info("No asset-level maintenance decisions available.")
 
 st.subheader("Maintenance Lead Time by Asset")
 
-lead_time_chart = asset_decisions.set_index("Asset")[["Lead Time"]]
+if not asset_decisions.empty:
+    lead_time_chart = asset_decisions.set_index("Asset")[["Lead Time"]]
+    st.bar_chart(lead_time_chart)
+else:
+    st.info("No maintenance lead-time data available.")
 
-st.bar_chart(lead_time_chart)
 
 st.caption(
     "Simulation uses illustrative maintenance-cost assumptions "
