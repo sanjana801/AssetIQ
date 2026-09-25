@@ -917,9 +917,8 @@ print(
 
 print("\nAblation Study")
 
-# Use the same risk components as the main AssetIQ calculation
-
-ablation_policies = {
+# Validation ablation
+val_ablation_policies = {
     "RUL Only": val_rul_risk,
 
     "RUL + Anomaly": (
@@ -939,7 +938,10 @@ ablation_policies = {
     )
 }
 
-for name, score in ablation_policies.items():
+ablation_results = {}
+ablation_test_results = {}
+
+for name, score in val_ablation_policies.items():
 
     temp_df = val_df.copy()
     temp_df["risk_score"] = score
@@ -950,6 +952,57 @@ for name, score in ablation_policies.items():
     )
 
     cost = calculate_policy_cost(result)
+
+    ablation_results[name] = int(cost)
+
+    print(
+        f"{name}: "
+        f"Cost=₹{cost:,.0f}, "
+        f"Failures={result['failure'].sum()}, "
+        f"Mean lead={result['lead_time'].mean():.2f}"
+    )
+
+
+# Test-set ablation
+test_ablation_policies = {
+    "RUL Only": test_rul_risk,
+
+    "RUL + Anomaly": (
+        0.75 * test_rul_risk
+        + 0.25 * test_anomaly_risk
+    ),
+
+    "RUL + Uncertainty": (
+        0.75 * test_rul_risk
+        + 0.25 * test_uncertainty_risk
+    ),
+
+    "AssetIQ": calculate_assetiq_risk(
+        test_rul_risk,
+        test_anomaly_risk,
+        test_uncertainty_risk
+    )
+}
+
+print("\nTest Ablation Study")
+
+for name, score in test_ablation_policies.items():
+
+    temp_df = test_df.copy()
+    temp_df["risk_score"] = score
+
+    result = evaluate_risk_policy(
+        temp_df,
+        threshold=selected_assetiq_threshold
+    )
+
+    cost = calculate_policy_cost(result)
+
+    ablation_test_results[name] = {
+        "cost": float(cost),
+        "failures": int(result["failure"].sum()),
+        "mean_lead": float(result["lead_time"].mean())
+    }
 
     print(
         f"{name}: "
@@ -1026,43 +1079,6 @@ research_results = {
     }
 },
 
-"risk_threshold_sensitivity": {
-    "0.40": {
-        "cost": 634400,
-        "failures": 0,
-        "mean_lead": 217.20
-    },
-    "0.45": {
-        "cost": 605700,
-        "failures": 0,
-        "mean_lead": 202.85
-    },
-    "0.50": {
-        "cost": 531800,
-        "failures": 0,
-        "mean_lead": 165.90
-    },
-    "0.55": {
-        "cost": 382100,
-        "failures": 0,
-        "mean_lead": 91.05
-    },
-    "0.60": {
-        "cost": 234700,
-        "failures": 0,
-        "mean_lead": 17.35
-    },
-    "0.65": {
-        "cost": 214300,
-        "failures": 0,
-        "mean_lead": 7.15
-    },
-    "0.70": {
-        "cost": 1102000,
-        "failures": 10,
-        "mean_lead": 1.00
-    }
-},
 
 "assetiq_asset_decisions": (
     result[result["unit"].isin(val_df["unit"])]
@@ -1089,10 +1105,8 @@ research_results = {
 },
 
     "ablation": {
-    "RUL Only": 567500,
-    "RUL + Anomaly": 323100,
-    "RUL + Uncertainty": 485900,
-    "AssetIQ": 214300
+    "validation": ablation_results,
+    "test": ablation_test_results
 },
 
 
