@@ -834,6 +834,8 @@ models = {
     "LightGBM": lgbm_model
 }
 
+model_vs_decision = {}
+
 for name, model in models.items():
 
     temp_df = test_df.copy()
@@ -848,6 +850,12 @@ for name, model in models.items():
     )
 
     cost = calculate_policy_cost(result)
+
+    model_vs_decision[name] = {
+    "cost": float(cost),
+    "failures": int(result["failure"].sum()),
+    "mean_lead": float(result["lead_time"].mean())
+}
 
     print(
         f"{name} Test: "
@@ -1097,23 +1105,7 @@ research_results = {
     .to_dict(orient="records")
 ),
 
-"model_vs_decision": {
-    "Linear Regression": {
-        "cost": 224200,
-        "failures": 0,
-        "mean_lead": 12.10
-    },
-    "Random Forest": {
-        "cost": 216000,
-        "failures": 0,
-        "mean_lead": 8.00
-    },
-    "LightGBM": {
-        "cost": 218200,
-        "failures": 0,
-        "mean_lead": 9.10
-    }
-},
+"model_vs_decision": model_vs_decision,
 
     "ablation": {
     "validation": ablation_results,
