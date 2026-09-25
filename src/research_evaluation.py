@@ -784,7 +784,8 @@ for threshold in [0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70]:
     )
 
 
-    #print("\nPolicy Comparison")
+    
+#print("\nPolicy Comparison")
 
 # Reactive maintenance
 reactive_cost = 20 * 100000
@@ -794,6 +795,7 @@ print(f"Reactive: Cost=₹{reactive_cost:,.0f}")
 rul_result = evaluate_rul_policy(val_df, threshold=10)
 rul_cost = calculate_policy_cost(rul_result)
 
+
 print(
     f"RUL Threshold: "
     f"Cost=₹{rul_cost:,.0f}, "
@@ -801,7 +803,7 @@ print(
     f"Mean lead={rul_result['lead_time'].mean():.2f}"
 )
 
-# AssetIQ risk policy
+
 
 
 # Train the three models
@@ -1027,6 +1029,8 @@ uncertainty_stage_coverage = {
 
 research_results = {
     "rul_models": test_metrics,
+
+    
         
     "uncertainty": {
     "nominal_coverage": 0.800,
@@ -1046,6 +1050,8 @@ research_results = {
     "rul_threshold_10": 218500,
     "assetiq_threshold_065": 219700
 },
+
+
     "risk_threshold_sensitivity": {
     "0.40": {
         "cost": 634400,
@@ -1161,11 +1167,43 @@ print(
     f"Mean lead={test_rul_result['lead_time'].mean():.2f}"
 )
 
+print("\nAssetIQ Cost Sensitivity")
+
+cost_sensitivity = {}
+
+sensitivity_assetiq_result = evaluate_risk_policy(
+    test_assetiq_df,
+    threshold=0.70
+)
+
+failure_cost_values = [50000, 100000, 150000, 200000, 300000]
+
+for failure_cost_value in failure_cost_values:
+
+    cost = calculate_policy_cost(
+        sensitivity_assetiq_result,
+        preventive_cost=10000,
+        failure_cost=failure_cost_value,
+        early_maintenance_penalty=100
+    )
+
+    cost_sensitivity[str(failure_cost_value)] = float(cost)
+
+    
+
+
+    print(
+        f"Failure cost {failure_cost_value:,}: "
+        f"AssetIQ 0.70 cost = ₹{cost:,.0f}"
+    )
+
 research_results["policy_comparison"] = {
     "reactive": float(reactive_cost),
     "rul_threshold_10": float(test_rul_cost),
     "assetiq_threshold_065": float(test_assetiq_cost)
 }
+
+research_results["cost_sensitivity"] = cost_sensitivity
 
 output_path = "data/processed/research_results.json"
 

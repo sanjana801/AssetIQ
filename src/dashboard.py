@@ -173,6 +173,26 @@ with col3:
         f"₹{policy['assetiq_threshold_065']:,.0f}"
     )
 
+st.subheader("AssetIQ Cost Sensitivity")
+
+cost_sensitivity = results["cost_sensitivity"]
+
+cost_sensitivity_df = pd.DataFrame(
+    {
+        "Failure Cost": [
+            int(value)
+            for value in cost_sensitivity.keys()
+        ],
+        "AssetIQ Cost": list(cost_sensitivity.values())
+    }
+)
+
+st.dataframe(
+    cost_sensitivity_df,
+    use_container_width=True,
+    hide_index=True
+)
+
 st.header("Ablation Study")
 
 ablation = results["ablation"]
