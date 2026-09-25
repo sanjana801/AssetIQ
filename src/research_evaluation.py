@@ -1044,7 +1044,7 @@ research_results = {
 "policy_comparison": {
     "reactive": 2000000,
     "rul_threshold_10": 218500,
-    "assetiq_threshold_065": 214300
+    "assetiq_threshold_065": 219700
 },
     "risk_threshold_sensitivity": {
     "0.40": {
@@ -1160,6 +1160,12 @@ print(
     f"Failures={test_rul_result['failure'].sum()}, "
     f"Mean lead={test_rul_result['lead_time'].mean():.2f}"
 )
+
+research_results["policy_comparison"] = {
+    "reactive": float(reactive_cost),
+    "rul_threshold_10": float(test_rul_cost),
+    "assetiq_threshold_065": float(test_assetiq_cost)
+}
 
 output_path = "data/processed/research_results.json"
 
