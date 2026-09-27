@@ -799,7 +799,7 @@ for threshold in [0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70]:
 
 # Reactive maintenance
 reactive_cost = 20 * 100000
-print(f"Reactive: Cost=â‚¹{reactive_cost:,.0f}")
+print(f"Reactive: Cost=Rs.{reactive_cost:,.0f}")
 
 # RUL threshold policy
 rul_result = evaluate_rul_policy(val_df, threshold=10)
@@ -808,7 +808,7 @@ rul_cost = calculate_policy_cost(rul_result)
 
 print(
     f"RUL Threshold: "
-    f"Cost=â‚¹{rul_cost:,.0f}, "
+    f"Cost=Rs.{rul_cost:,.0f}, "
     f"Failures={rul_result['failure'].sum()}, "
     f"Mean lead={rul_result['lead_time'].mean():.2f}"
 )
@@ -869,7 +869,7 @@ for name, model in models.items():
 
     print(
         f"{name} Test: "
-        f"Cost=â‚¹{cost:,.0f}, "
+        f"Cost=Rs.{cost:,.0f}, "
         f"Failures={result['failure'].sum()}, "
         f"Mean lead={result['lead_time'].mean():.2f}"
     )
@@ -888,7 +888,7 @@ for threshold in [10, 20, 30, 40, 50]:
 
     print(
         f"RUL {threshold}: "
-        f"Cost=â‚¹{cost:,.0f}, "
+        f"Cost=Rs.{cost:,.0f}, "
         f"Lead={result['lead_time'].mean():.2f}"
     )
 
@@ -920,7 +920,7 @@ for threshold in [0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70]:
 
     print(
         f"AssetIQ {threshold:.2f}: "
-        f"Cost=â‚¹{cost:,.0f}, "
+        f"Cost=Rs.{cost:,.0f}, "
         f"Failures={result['failure'].sum()}, "
         f"Lead={result['lead_time'].mean():.2f}"
     )
@@ -980,7 +980,7 @@ for name, score in val_ablation_policies.items():
 
     print(
         f"{name}: "
-        f"Cost=â‚¹{cost:,.0f}, "
+        f"Cost=Rs.{cost:,.0f}, "
         f"Failures={result['failure'].sum()}, "
         f"Mean lead={result['lead_time'].mean():.2f}"
     )
@@ -1031,7 +1031,7 @@ for name, score in test_ablation_policies.items():
 
     print(
         f"{name}: "
-        f"Cost=â‚¹{cost:,.0f}, "
+        f"Cost=Rs.{cost:,.0f}, "
         f"Failures={result['failure'].sum()}, "
         f"Mean lead={result['lead_time'].mean():.2f}"
     )
@@ -1112,7 +1112,7 @@ test_assetiq_cost = calculate_policy_cost(
 
 print(
     f"AssetIQ Test: "
-    f"Cost=â‚¹{test_assetiq_cost:,.0f}, "
+    f"Cost=Rs.{test_assetiq_cost:,.0f}, "
     f"Failures={test_assetiq_result['failure'].sum()}, "
     f"Mean lead={test_assetiq_result['lead_time'].mean():.2f}"
 )
@@ -1128,7 +1128,7 @@ test_rul_cost = calculate_policy_cost(
 
 print(
     f"RUL Threshold Test: "
-    f"Cost=â‚¹{test_rul_cost:,.0f}, "
+    f"Cost=Rs.{test_rul_cost:,.0f}, "
     f"Failures={test_rul_result['failure'].sum()}, "
     f"Mean lead={test_rul_result['lead_time'].mean():.2f}"
 )
@@ -1160,7 +1160,7 @@ for failure_cost_value in failure_cost_values:
 
     print(
         f"Failure cost {failure_cost_value:,}: "
-        f"AssetIQ 0.70 cost = â‚¹{cost:,.0f}"
+        f"AssetIQ 0.70 cost = Rs.{cost:,.0f}"
     )
 
 research_results["policy_comparison"] = {
@@ -1179,3 +1179,4 @@ with open(output_path, "w") as f:
     json.dump(research_results, f, indent=4)
 
 print(f"\nResearch results saved to: {output_path}")
+
