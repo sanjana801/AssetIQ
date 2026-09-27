@@ -1,4 +1,4 @@
-from data_loader import load_cmapss_fd001
+﻿from data_loader import load_cmapss_fd001
 from preprocessing import preprocess_cmapss
 from features import create_features
 from anomaly import train_anomaly_model, predict_anomalies
@@ -491,7 +491,7 @@ for threshold in [10, 20, 30, 40, 50]:
 
     print(
         f"Threshold {threshold}: "
-        f"Cost=₹{cost:,.0f}"
+        f"Cost=Rs.{cost:,.0f}"
     )
 
 from sklearn.ensemble import RandomForestClassifier
@@ -752,6 +752,8 @@ def evaluate_risk_policy(df, threshold):
 
 print("\nAssetIQ Risk Threshold Sensitivity")
 
+risk_threshold_sensitivity = {}
+
 for threshold in [0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70]:
 
     temp_df = val_df.copy()
@@ -767,10 +769,17 @@ for threshold in [0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70]:
         threshold
     )
 
+    cost = calculate_policy_cost(result)
+
+    risk_threshold_sensitivity[f"{threshold:.2f}"] = {
+        "cost": float(cost),
+        "failures": int(result["failure"].sum()),
+        "mean_lead": float(result["lead_time"].mean())
+    }
+
     if threshold == 0.65:
         selected_assetiq_result = result.copy()
 
-    if threshold == 0.65:
         print("\nAssetIQ Asset-Level Decisions")
         print(
             result.sort_values("unit").to_string(index=False)
@@ -778,6 +787,7 @@ for threshold in [0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70]:
 
     print(
         f"Threshold {threshold:.2f}: "
+        f"Cost=Rs.{cost:,.0f}, "
         f"Maintained={result['maintenance_cycle'].notna().sum()}, "
         f"Failures={result['failure'].sum()}, "
         f"Mean lead={result['lead_time'].mean():.2f}"
@@ -789,7 +799,7 @@ for threshold in [0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70]:
 
 # Reactive maintenance
 reactive_cost = 20 * 100000
-print(f"Reactive: Cost=₹{reactive_cost:,.0f}")
+print(f"Reactive: Cost=â‚¹{reactive_cost:,.0f}")
 
 # RUL threshold policy
 rul_result = evaluate_rul_policy(val_df, threshold=10)
@@ -798,7 +808,7 @@ rul_cost = calculate_policy_cost(rul_result)
 
 print(
     f"RUL Threshold: "
-    f"Cost=₹{rul_cost:,.0f}, "
+    f"Cost=â‚¹{rul_cost:,.0f}, "
     f"Failures={rul_result['failure'].sum()}, "
     f"Mean lead={rul_result['lead_time'].mean():.2f}"
 )
@@ -859,7 +869,7 @@ for name, model in models.items():
 
     print(
         f"{name} Test: "
-        f"Cost=₹{cost:,.0f}, "
+        f"Cost=â‚¹{cost:,.0f}, "
         f"Failures={result['failure'].sum()}, "
         f"Mean lead={result['lead_time'].mean():.2f}"
     )
@@ -878,7 +888,7 @@ for threshold in [10, 20, 30, 40, 50]:
 
     print(
         f"RUL {threshold}: "
-        f"Cost=₹{cost:,.0f}, "
+        f"Cost=â‚¹{cost:,.0f}, "
         f"Lead={result['lead_time'].mean():.2f}"
     )
 
@@ -910,7 +920,7 @@ for threshold in [0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70]:
 
     print(
         f"AssetIQ {threshold:.2f}: "
-        f"Cost=₹{cost:,.0f}, "
+        f"Cost=â‚¹{cost:,.0f}, "
         f"Failures={result['failure'].sum()}, "
         f"Lead={result['lead_time'].mean():.2f}"
     )
@@ -970,7 +980,7 @@ for name, score in val_ablation_policies.items():
 
     print(
         f"{name}: "
-        f"Cost=₹{cost:,.0f}, "
+        f"Cost=â‚¹{cost:,.0f}, "
         f"Failures={result['failure'].sum()}, "
         f"Mean lead={result['lead_time'].mean():.2f}"
     )
@@ -1021,7 +1031,7 @@ for name, score in test_ablation_policies.items():
 
     print(
         f"{name}: "
-        f"Cost=₹{cost:,.0f}, "
+        f"Cost=â‚¹{cost:,.0f}, "
         f"Failures={result['failure'].sum()}, "
         f"Mean lead={result['lead_time'].mean():.2f}"
     )
@@ -1060,43 +1070,7 @@ research_results = {
 },
 
 
-    "risk_threshold_sensitivity": {
-    "0.40": {
-        "cost": 634400,
-        "failures": 0,
-        "mean_lead": 217.20
-    },
-    "0.45": {
-        "cost": 605700,
-        "failures": 0,
-        "mean_lead": 202.85
-    },
-    "0.50": {
-        "cost": 531800,
-        "failures": 0,
-        "mean_lead": 165.90
-    },
-    "0.55": {
-        "cost": 382100,
-        "failures": 0,
-        "mean_lead": 91.05
-    },
-    "0.60": {
-        "cost": 234700,
-        "failures": 0,
-        "mean_lead": 17.35
-    },
-    "0.65": {
-        "cost": 214300,
-        "failures": 0,
-        "mean_lead": 7.15
-    },
-    "0.70": {
-        "cost": 1102000,
-        "failures": 10,
-        "mean_lead": 1.00
-    }
-},
+    "risk_threshold_sensitivity": risk_threshold_sensitivity,
 
 
 "assetiq_asset_decisions": (
@@ -1138,7 +1112,7 @@ test_assetiq_cost = calculate_policy_cost(
 
 print(
     f"AssetIQ Test: "
-    f"Cost=₹{test_assetiq_cost:,.0f}, "
+    f"Cost=â‚¹{test_assetiq_cost:,.0f}, "
     f"Failures={test_assetiq_result['failure'].sum()}, "
     f"Mean lead={test_assetiq_result['lead_time'].mean():.2f}"
 )
@@ -1154,7 +1128,7 @@ test_rul_cost = calculate_policy_cost(
 
 print(
     f"RUL Threshold Test: "
-    f"Cost=₹{test_rul_cost:,.0f}, "
+    f"Cost=â‚¹{test_rul_cost:,.0f}, "
     f"Failures={test_rul_result['failure'].sum()}, "
     f"Mean lead={test_rul_result['lead_time'].mean():.2f}"
 )
@@ -1186,7 +1160,7 @@ for failure_cost_value in failure_cost_values:
 
     print(
         f"Failure cost {failure_cost_value:,}: "
-        f"AssetIQ 0.70 cost = ₹{cost:,.0f}"
+        f"AssetIQ 0.70 cost = â‚¹{cost:,.0f}"
     )
 
 research_results["policy_comparison"] = {
