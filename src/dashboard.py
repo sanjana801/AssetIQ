@@ -119,7 +119,8 @@ st.dataframe(
 
 st.caption(
     "Nominal prediction-interval coverage is 80%. "
-    "Observed coverage varies across asset life stages."
+    "Coverage varies across the asset lifecycle, with lower coverage "
+    "during early life and higher observed coverage during mid and late life."
 )
 
 st.bar_chart(
@@ -169,9 +170,13 @@ with col2:
 
 with col3:
     st.metric(
-        "AssetIQ Risk (0.65)",
+        "AssetIQ Test Cost",
         f"₹{policy['assetiq_threshold_065']:,.0f}"
     )
+
+st.caption(
+    "Test-set cost using the AssetIQ risk threshold selected on validation data (0.65)."
+)
 
 st.subheader("AssetIQ Cost Sensitivity")
 
