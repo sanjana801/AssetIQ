@@ -1,7 +1,5 @@
 import joblib
-import shap
 import pandas as pd
-import os
 
 
 model = joblib.load(
@@ -12,26 +10,28 @@ df = pd.read_csv(
     "data/processed/assetiq_predictions.csv"
 )
 
-feature_cols = [
-    col for col in df.columns
-    if col.startswith("sensor_")
-]
+feature_cols = model.feature_name_
 
 
 def get_asset_explanation(asset_id):
 
-    asset = df[df["unit"] == asset_id].sort_values("cycle")
+    asset = (
+        df[df["unit"] == asset_id]
+        .sort_values("cycle")
+    )
+
     latest = asset.tail(1)
 
     X_latest = latest[feature_cols]
 
-    explainer = shap.TreeExplainer(model)
-
-    shap_values = explainer.shap_values(X_latest)
+    contributions = model.predict(
+        X_latest,
+        pred_contrib=True
+    )[0]
 
     explanation = pd.DataFrame({
         "feature": feature_cols,
-        "shap_value": shap_values[0]
+        "shap_value": contributions[:-1]
     })
 
     explanation["abs_shap"] = (
@@ -44,17 +44,3 @@ def get_asset_explanation(asset_id):
     ).reset_index(drop=True)
 
     return explanation
-
-
-if __name__ == "__main__":
-
-    explanation = get_asset_explanation(1)
-
-    print("\nAsset Explanation")
-    print("=" * 50)
-
-    print(
-        explanation.head(10)[
-            ["feature", "shap_value"]
-        ].to_string(index=False)
-    )

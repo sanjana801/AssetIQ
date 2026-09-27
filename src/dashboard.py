@@ -374,21 +374,32 @@ st.header("Why is this asset at risk?")
 
 explanation = get_asset_explanation(selected_asset).head(10).copy()
 
-explanation["Direction"] = explanation["shap_value"].apply(
-    lambda x: "Reduces predicted RUL"
-    if x < 0
-    else "Increases predicted RUL"
-)
+if explanation.empty:
 
-explanation["Contribution"] = explanation["shap_value"].abs().round(2)
+    st.warning(
+        "SHAP explanation is temporarily unavailable because "
+        "the local Windows security policy is blocking a required dependency."
+    )
 
-st.dataframe(
-    explanation[
-        ["feature", "Direction", "Contribution"]
-    ],
-    use_container_width=True,
-    hide_index=True
-)
+else:
+
+    explanation["Direction"] = explanation["shap_value"].apply(
+        lambda x: "Reduces predicted RUL"
+        if x < 0
+        else "Increases predicted RUL"
+    )
+
+    explanation["Contribution"] = (
+        explanation["shap_value"].abs().round(2)
+    )
+
+    st.dataframe(
+        explanation[
+            ["feature", "Direction", "Contribution"]
+        ],
+        use_container_width=True,
+        hide_index=True
+    )
 
 st.header("Top 10 Highest-Risk Assets")
 
